@@ -91,12 +91,20 @@ public class CharacterAnimator : MonoBehaviour
     // Transforms BVHJoint according to the keyframe channel data, and recursively transforms its children
     private void TransformJoint(BVHJoint joint, Matrix4x4 parentTransform, float[] keyframe)
     {
-        // Transform t = joint.gameObject.transform;
-        Matrix4x4 T  = MatrixUtils.Translate(joint.offset);
-        Matrix4x4 Rx = MatrixUtils.RotateX(-keyframe[joint.rotationChannels.x]);
-        Matrix4x4 Ry = MatrixUtils.RotateY(-keyframe[joint.rotationChannels.y]);
+        Transform tt = joint.gameObject.transform;
+        Vector3 optional_position = Vector3.zero;
+        if (joint.positionChannels != null)
+        {
+            optional_position = new Vector3(keyframe[joint.positionChannels.x],
+                                    keyframe[joint.positionChannels.y],
+                                    keyframe[joint.positionChannels.z]);
+        }
+
+        Matrix4x4 T  = MatrixUtils.Translate(joint.offset); //  + optional_position
+        Matrix4x4 Rx = MatrixUtils.RotateX(keyframe[joint.rotationChannels.x]);
+        Matrix4x4 Ry = MatrixUtils.RotateY(keyframe[joint.rotationChannels.y]);
         Matrix4x4 Rz = MatrixUtils.RotateZ(keyframe[joint.rotationChannels.z]);
-        // Matrix4x4 S  = MatrixUtils.Scale(t.localScale);  // rigid body motion - no scaling!
+        Matrix4x4 S  = MatrixUtils.Scale(tt.localScale);  // rigid body motion - no scaling!
 
         Matrix4x4 R = Matrix4x4.identity;
         for (int i=0; i<3; ++i)
@@ -105,7 +113,7 @@ public class CharacterAnimator : MonoBehaviour
             if (i==joint.rotationOrder.y)   { R = R * Ry;  continue; }
             if (i==joint.rotationOrder.z)   { R = R * Rz;  continue; }
         }
-        Matrix4x4 M = parentTransform * T * R; // * S;
+        Matrix4x4 M = parentTransform * T * R;
         MatrixUtils.ApplyTransform(joint.gameObject, M);
 
         if (!joint.isEndSite)
@@ -128,14 +136,20 @@ public class CharacterAnimator : MonoBehaviour
             if (animate)
             {
                 Debug.Log($"#{currFrame}:  now:{now}  lasttime:{lasttime}");
-
                 // print(data.keyframes[currFrame][data.rootJoint.positionChannels.x]);
-                Matrix4x4 T = MatrixUtils.Translate(
+                // Transform tt = data.rootJoint.gameObject.transform;
+                Matrix4x4 T = MatrixUtils.Translate( //tt.localScale + 
                     new Vector3(data.keyframes[currFrame][data.rootJoint.positionChannels.x],
                                 data.keyframes[currFrame][data.rootJoint.positionChannels.y],
                                 data.keyframes[currFrame][data.rootJoint.positionChannels.z]));
-                Matrix4x4 S  = MatrixUtils.Scale(Vector3.one);  // rigid body motion - no scaling!
-                MatrixUtils.ApplyTransform(data.rootJoint.gameObject, T * S);
+                // Matrix4x4 Rx = MatrixUtils.RotateX(data.keyframes[currFrame][data.rootJoint.rotationChannels.x]);
+                // Matrix4x4 Ry = MatrixUtils.RotateY(data.keyframes[currFrame][data.rootJoint.rotationChannels.y]);
+                // Matrix4x4 Rz = MatrixUtils.RotateZ(data.keyframes[currFrame][data.rootJoint.rotationChannels.z]);                                
+                // Matrix4x4 S  = MatrixUtils.Scale(tt.localScale);  // rigid body motion - no scaling!
+                // Matrix4x4 mm = Matrix4x4.identity;
+                // // mm.m03 = tt.localScale[0];
+                // Matrix4x4 R = Rz*Ry*Rx;
+                // // MatrixUtils.ApplyTransform(data.rootJoint.gameObject, T * S);
 
                 TransformJoint(data.rootJoint, T, data.keyframes[currFrame]);
                 // animate = false;
