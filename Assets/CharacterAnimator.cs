@@ -19,7 +19,6 @@ public class CharacterAnimator : MonoBehaviour
     {
         BVHParser parser = new BVHParser();
         data = parser.Parse(BVHFile);
-        // GameObject joint = 
         CreateJoint(data.rootJoint, Vector3.zero);
         Debug.Log($"END Of start {BVHFile}");
         lasttime = Time.realtimeSinceStartup;
@@ -71,15 +70,16 @@ public class CharacterAnimator : MonoBehaviour
         
         int scale = joint.name=="Head" ? 8 : 2;
         Matrix4x4 S = MatrixUtils.Scale(new Vector3(scale, scale, scale));
+        MatrixUtils.ApplyTransform(sphere, S);
+
         Matrix4x4 T = MatrixUtils.Translate(parentPosition + joint.offset);
-        MatrixUtils.ApplyTransform(joint.gameObject, T * S);
+        MatrixUtils.ApplyTransform(joint.gameObject, T);
 
         if (!joint.isEndSite)
         {
             foreach (BVHJoint child in joint.children)
             {
                 GameObject child_joint = CreateJoint(child, sphere.transform.position);
-                child_joint.transform.parent = joint.gameObject.transform;
 
                 GameObject bone = CreateCylinderBetweenPoints(joint.gameObject.transform.position, child_joint.transform.position, 0.5f);
                 bone.transform.parent = joint.gameObject.transform;
@@ -91,21 +91,10 @@ public class CharacterAnimator : MonoBehaviour
     // Transforms BVHJoint according to the keyframe channel data, and recursively transforms its children
     private void TransformJoint(BVHJoint joint, Matrix4x4 parentTransform, float[] keyframe)
     {
-        Transform tt = joint.gameObject.transform;
-        Vector3 optional_position = Vector3.zero;
-        if (joint.positionChannels != null)
-        {
-            optional_position = new Vector3(keyframe[joint.positionChannels.x],
-                                    keyframe[joint.positionChannels.y],
-                                    keyframe[joint.positionChannels.z]);
-        }
-
         Matrix4x4 T  = MatrixUtils.Translate(joint.offset); //  + optional_position
         Matrix4x4 Rx = MatrixUtils.RotateX(keyframe[joint.rotationChannels.x]);
         Matrix4x4 Ry = MatrixUtils.RotateY(keyframe[joint.rotationChannels.y]);
         Matrix4x4 Rz = MatrixUtils.RotateZ(keyframe[joint.rotationChannels.z]);
-        Matrix4x4 S  = MatrixUtils.Scale(tt.localScale);  // rigid body motion - no scaling!
-
         Matrix4x4 R = Matrix4x4.identity;
         for (int i=0; i<3; ++i)
         {
@@ -118,9 +107,7 @@ public class CharacterAnimator : MonoBehaviour
 
         if (!joint.isEndSite)
             foreach (BVHJoint child in joint.children)
-            {
                 TransformJoint(child, M, keyframe);
-            }
     }
 
     // Update is called once per frame
@@ -130,38 +117,20 @@ public class CharacterAnimator : MonoBehaviour
         if (now > lasttime + data.frameLength)
         {
             int n = (int)((now - lasttime) / data.frameLength);
-            currFrame = (currFrame + n) % data.numFrames;
-            // fps = 1f/(now - lasttime);
+            currFrame = (currFrame + n) % data.numFrames;  // TODO: add this!
 
             if (animate)
             {
                 Debug.Log($"#{currFrame}:  now:{now}  lasttime:{lasttime}");
-                // print(data.keyframes[currFrame][data.rootJoint.positionChannels.x]);
-                // Transform tt = data.rootJoint.gameObject.transform;
                 Matrix4x4 T = MatrixUtils.Translate( //tt.localScale + 
                     new Vector3(data.keyframes[currFrame][data.rootJoint.positionChannels.x],
                                 data.keyframes[currFrame][data.rootJoint.positionChannels.y],
                                 data.keyframes[currFrame][data.rootJoint.positionChannels.z]));
-                // Matrix4x4 Rx = MatrixUtils.RotateX(data.keyframes[currFrame][data.rootJoint.rotationChannels.x]);
-                // Matrix4x4 Ry = MatrixUtils.RotateY(data.keyframes[currFrame][data.rootJoint.rotationChannels.y]);
-                // Matrix4x4 Rz = MatrixUtils.RotateZ(data.keyframes[currFrame][data.rootJoint.rotationChannels.z]);                                
-                // Matrix4x4 S  = MatrixUtils.Scale(tt.localScale);  // rigid body motion - no scaling!
-                // Matrix4x4 mm = Matrix4x4.identity;
-                // // mm.m03 = tt.localScale[0];
-                // Matrix4x4 R = Rz*Ry*Rx;
-                // // MatrixUtils.ApplyTransform(data.rootJoint.gameObject, T * S);
-
                 TransformJoint(data.rootJoint, T, data.keyframes[currFrame]);
-                // animate = false;
+                
+                // animate = false;  currFrame++;  // TODO: REMOVE
             }
             lasttime = now;
         }
     }
-    // private void OnGUI() {
-    //     GUIStyle guiStyle = GUIStyle.none;
-    //     guiStyle.fontSize = 30;
-    //     guiStyle.normal.textColor = Color.red;
-    //     guiStyle.alignment = TextAnchor.UpperLeft;            
-    //     GUI.Label(new Rect(450, 50, 500, 100), System.String.Format("{0:F0} FPS", fps), guiStyle);
-    // }
 }
