@@ -388,7 +388,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 49d85c8c57aa94ecaae88bfb5b4b59e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  BVHFile: {fileID: 4900000, guid: 197e2e224e140441da497f2d0d2a07ce, type: 3}
+  BVHFile: {fileID: 4900000, guid: c8e9926897d374243a9cc3697c85d42e, type: 3}
   animate: 1
   fps: 0
 --- !u!4 &1849014541

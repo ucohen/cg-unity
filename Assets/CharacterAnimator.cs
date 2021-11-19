@@ -12,7 +12,6 @@ public class CharacterAnimator : MonoBehaviour
     private int currFrame = 0; // Current frame of the animation
     float lasttime;
 
-    public float fps;
     // GameObject root_joint;
     // Start is called before the first frame update
     void Start()
@@ -91,7 +90,7 @@ public class CharacterAnimator : MonoBehaviour
     // Transforms BVHJoint according to the keyframe channel data, and recursively transforms its children
     private void TransformJoint(BVHJoint joint, Matrix4x4 parentTransform, float[] keyframe)
     {
-        Matrix4x4 T  = MatrixUtils.Translate(joint.offset); //  + optional_position
+        Matrix4x4 T  = MatrixUtils.Translate(joint.offset);
         Matrix4x4 Rx = MatrixUtils.RotateX(keyframe[joint.rotationChannels.x]);
         Matrix4x4 Ry = MatrixUtils.RotateY(keyframe[joint.rotationChannels.y]);
         Matrix4x4 Rz = MatrixUtils.RotateZ(keyframe[joint.rotationChannels.z]);
@@ -122,13 +121,11 @@ public class CharacterAnimator : MonoBehaviour
             if (animate)
             {
                 Debug.Log($"#{currFrame}:  now:{now}  lasttime:{lasttime}");
-                Matrix4x4 T = MatrixUtils.Translate( //tt.localScale + 
+                Matrix4x4 T = MatrixUtils.Translate(
                     new Vector3(data.keyframes[currFrame][data.rootJoint.positionChannels.x],
                                 data.keyframes[currFrame][data.rootJoint.positionChannels.y],
                                 data.keyframes[currFrame][data.rootJoint.positionChannels.z]));
                 TransformJoint(data.rootJoint, T, data.keyframes[currFrame]);
-                
-                // animate = false;  currFrame++;  // TODO: REMOVE
             }
             lasttime = now;
         }
