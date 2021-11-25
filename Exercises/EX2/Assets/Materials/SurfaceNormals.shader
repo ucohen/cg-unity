@@ -31,7 +31,7 @@
                 {
                     v2f output;
                     output.pos = UnityObjectToClipPos(input.vertex);
-                    output.color = input.normal * 0.5 + 0.5;
+                    output.color = input.normal * 0.5 + 0.5;  // +-1 tp 0-1 norm
                     return output;
                 }
 
