@@ -37,30 +37,33 @@
                 struct v2f
                 {
                     float4 pos : SV_POSITION;
-                    fixed4 color : COLOR0;
+                    float3 normal : NORMAL;
+                    float3 posWorld : COLOR0;
                 };
 
                 v2f vert (appdata input)
                 {
                     v2f output;
                     output.pos = UnityObjectToClipPos(input.vertex);
-
-                    float3 n = UnityObjectToWorldNormal(input.normal);      // vertex normal in world space
-                    float3 l = normalize(_WorldSpaceLightPos0.xyz);         // light pos in world space
-                    float3 v = normalize(_WorldSpaceCameraPos);             // viewpoint in world space
-                    float3 h = normalize((l+v)/2);
-
-                    fixed4 color_ambient = _AmbientColor * _LightColor0;
-                    fixed4 color_diffuse = _DiffuseColor * _LightColor0 * max(0, dot(l,n));
-                    fixed4 color_specular= _SpecularColor* _LightColor0 * pow(max(0, dot(n,h)), _Shininess);
-                    
-                    output.color = color_ambient + color_diffuse + color_specular;
+                    output.posWorld = mul(unity_ObjectToWorld, input.vertex);   // vertex pos in world-space
+                    output.normal = input.normal;
                     return output;
                 }
 
                 fixed4 frag (v2f input) : SV_Target
                 {
-                    return input.color;
+                    // BlinnPhong is implemented per fragment
+                    v2f output;
+                    float3 v = normalize(_WorldSpaceCameraPos - input.posWorld.xyz);    // relative camera position
+                    float3 n = normalize(mul(unity_ObjectToWorld, input.normal));       // vertex normal in world space
+                    float3 l = normalize(_WorldSpaceLightPos0.xyz);                     // light pos in world space
+                    float3 h = normalize(l+v);                                          // halfway vector
+
+                    fixed4 color_ambient = _AmbientColor * _LightColor0;
+                    fixed4 color_diffuse = _DiffuseColor * _LightColor0 * max(0, dot(l,n));
+                    fixed4 color_specular= _SpecularColor* _LightColor0 * pow(max(0, dot(n,h)), _Shininess);
+                    
+                    return color_ambient + color_diffuse + color_specular;
                 }
 
             ENDCG

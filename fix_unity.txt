@@ -1,0 +1,5 @@
+
+delete:
+
+c:\Users\cohenuzi\OneDrive - Intel Corporation\Documents\school\ComputerGraphics_67609\cg-unity\Exercises\EX3\Library\CurrentLayout-default.dwlt
+~/Library/Preferences/Unity/Editor-5.x/Layouts/default/LastLayout.dwlt (or equivalent path)
